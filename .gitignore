@@ -1,0 +1,17 @@
+# secrets
+application-local.yml
+.env
+
+# Java / IntelliJ
+target/
+.idea/
+*.iml
+
+# Node
+node_modules/
+dist/
+
+# Python
+.venv/
+__pycache__/
+*.joblib
