@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: backend
+  profiles:
+    active: local
+  datasource:
+    url: jdbc:postgresql://localhost:5432/parking_db
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    open-in-view: false
+
+server:
+  port: 8080
