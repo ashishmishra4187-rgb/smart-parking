@@ -9,6 +9,8 @@ spring:
       maximum-pool-size: 10
   jpa:
     open-in-view: false
+    hibernate:
+      ddl-auto: update
 
 server:
   port: 8080
