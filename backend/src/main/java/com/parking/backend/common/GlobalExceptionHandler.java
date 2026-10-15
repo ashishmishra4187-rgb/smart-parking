@@ -20,6 +20,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> conflict(ConflictException ex) {
         return build(HttpStatus.CONFLICT, ex.getMessage());
     }
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> unauthorized(UnauthorizedException ex) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> invalid(MethodArgumentNotValidException ex) {
