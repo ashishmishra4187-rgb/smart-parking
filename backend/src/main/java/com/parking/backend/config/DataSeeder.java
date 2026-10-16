@@ -10,37 +10,46 @@ import com.parking.backend.parking.SlotType;
 import com.parking.backend.user.Role;
 import com.parking.backend.user.User;
 import com.parking.backend.user.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
 
+    private static final String MANAGER_EMAIL = "manager@parking.local";
+
     private final ParkingLotRepository lots;
     private final ParkingSectionRepository sections;
     private final ParkingSlotRepository slots;
     private final UserRepository users;
+    private final PasswordEncoder encoder;
+    private final String managerPassword;
 
     public DataSeeder(ParkingLotRepository lots,
                       ParkingSectionRepository sections,
                       ParkingSlotRepository slots,
-                      UserRepository users) {
+                      UserRepository users,
+                      PasswordEncoder encoder,
+                      @Value("${app.seed.manager-password}") String managerPassword) {
         this.lots = lots;
         this.sections = sections;
         this.slots = slots;
         this.users = users;
+        this.encoder = encoder;
+        this.managerPassword = managerPassword;
     }
 
     @Override
     public void run(String... args) {
-        // temporary demo user (replaced by real login on Day 8-9)
-        if (users.count() == 0) {
-            User demo = new User();
-            demo.setName("Demo Driver");
-            demo.setEmail("demo@parking.local");
-            demo.setPasswordHash("temporary-placeholder");
-            demo.setRole(Role.DRIVER);
-            users.save(demo);
+        if (!users.existsByEmail(MANAGER_EMAIL)) {
+            User m = new User();
+            m.setName("Lot Manager");
+            m.setEmail(MANAGER_EMAIL);
+            m.setPasswordHash(encoder.encode(managerPassword));
+            m.setRole(Role.MANAGER);
+            users.save(m);
         }
 
         if (lots.count() > 0) {

@@ -30,7 +30,9 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(a -> a
-                        .requestMatchers("/api/health", "/api/auth/**").permitAll()
+                        .requestMatchers("/api/health", "/api/auth/**", "/error").permitAll()
+                        .requestMatchers("/api/manager/**").hasAnyRole("MANAGER", "ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

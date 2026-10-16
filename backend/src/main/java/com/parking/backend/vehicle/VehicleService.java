@@ -11,8 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class VehicleService {
 
-    private static final String DEMO_EMAIL = "demo@parking.local"; // temporary until login exists
-
     private final VehicleRepository vehicles;
     private final UserRepository users;
 
@@ -22,23 +20,31 @@ public class VehicleService {
     }
 
     @Transactional
-    public VehicleDto create(CreateVehicleRequest req) {
+    public VehicleDto create(String ownerEmail, CreateVehicleRequest req) {
         String plate = req.plateNumber().replaceAll("[ -]", "").toUpperCase();
         if (vehicles.existsByPlateNumber(plate)) {
             throw new ConflictException("Vehicle " + plate + " is already registered");
         }
-        User owner = users.findByEmail(DEMO_EMAIL)
-                .orElseThrow(() -> new NotFoundException("Demo user missing"));
+        User owner = users.findByEmail(ownerEmail)
+                .orElseThrow(() -> new NotFoundException("User not found"));
         Vehicle v = new Vehicle();
         v.setUser(owner);
         v.setPlateNumber(plate);
         v.setType(req.type());
+        v.setPrimaryVehicle(vehicles.findByUserEmail(ownerEmail).isEmpty()); // first one is primary
         return toDto(vehicles.save(v));
     }
 
     @Transactional(readOnly = true)
-    public List<VehicleDto> list() {
-        return vehicles.findAll().stream().map(this::toDto).toList();
+    public List<VehicleDto> list(String ownerEmail) {
+        return vehicles.findByUserEmail(ownerEmail).stream().map(this::toDto).toList();
+    }
+
+    @Transactional
+    public void delete(String ownerEmail, Long id) {
+        Vehicle v = vehicles.findByIdAndUserEmail(id, ownerEmail)
+                .orElseThrow(() -> new NotFoundException("Vehicle " + id + " not found"));
+        vehicles.delete(v);
     }
 
     private VehicleDto toDto(Vehicle v) {
