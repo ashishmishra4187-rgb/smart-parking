@@ -5,6 +5,7 @@ import com.parking.backend.common.ConflictException;
 import com.parking.backend.common.NotFoundException;
 import com.parking.backend.parking.ParkingSlot;
 import com.parking.backend.parking.ParkingSlotRepository;
+import com.parking.backend.parking.SlotDto;
 import com.parking.backend.parking.SlotService;
 import com.parking.backend.parking.SlotStatus;
 import com.parking.backend.parking.SlotType;
@@ -54,17 +55,21 @@ public class ReservationService {
         Vehicle vehicle = vehicles.findByIdAndUserEmail(req.vehicleId(), email)
                 .orElseThrow(() -> new NotFoundException("Vehicle " + req.vehicleId() + " not found"));
         if (reservations.existsByVehicleIdAndStatus(vehicle.getId(), ReservationStatus.ACTIVE)) {
-            throw new ConflictException("Vehicle " + vehicle.getPlateNumber() + " already has an active reservation");
+            throw new ConflictException(
+                    "Vehicle " + vehicle.getPlateNumber() + " already has an active reservation");
         }
 
         // LOCK the slot row: other requests for this slot now wait here
         ParkingSlot slot = slots.findByIdForUpdate(req.slotId())
                 .orElseThrow(() -> new NotFoundException("Slot " + req.slotId() + " not found"));
         if (slot.getStatus() != SlotStatus.AVAILABLE) {
-            throw new ConflictException("Slot " + slot.getCode() + " is no longer available");
+            throw new SlotUnavailableException(
+                    "Slot " + slot.getCode() + " is no longer available",
+                    alternatives(slot, vehicle.getType()));
         }
         if (!fits(vehicle.getType(), slot.getSlotType())) {
-            throw new ConflictException("A " + vehicle.getType() + " cannot use a " + slot.getSlotType() + " slot");
+            throw new ConflictException(
+                    "A " + vehicle.getType() + " cannot use a " + slot.getSlotType() + " slot");
         }
 
         slotService.changeStatus(slot, SlotStatus.RESERVED);
@@ -98,13 +103,25 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public List<ReservationDto> mine(String email) {
-        return reservations.findByUserEmailOrderByCreatedAtDesc(email).stream().map(this::toDto).toList();
+        return reservations.findByUserEmailOrderByCreatedAtDesc(email).stream()
+                .map(this::toDto).toList();
     }
 
     @Transactional(readOnly = true)
     public ReservationDto get(String email, Long id) {
         return reservations.findByIdAndUserEmail(id, email).map(this::toDto)
                 .orElseThrow(() -> new NotFoundException("Reservation " + id + " not found"));
+    }
+
+    private List<SlotDto> alternatives(ParkingSlot taken, VehicleType type) {
+        Long lotId = taken.getSection().getLot().getId();
+        return slots.findAllByLotId(lotId).stream()
+                .filter(s -> s.getStatus() == SlotStatus.AVAILABLE)
+                .filter(s -> !s.getId().equals(taken.getId()))
+                .filter(s -> fits(type, s.getSlotType()))
+                .limit(3)
+                .map(SlotDto::from)
+                .toList();
     }
 
     private boolean fits(VehicleType v, SlotType s) {
