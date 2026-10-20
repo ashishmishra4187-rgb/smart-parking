@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,6 +17,12 @@ public class SlotService {
             SlotStatus.OCCUPIED, EnumSet.of(SlotStatus.AVAILABLE),
             SlotStatus.MAINTENANCE, EnumSet.of(SlotStatus.AVAILABLE));
 
+    private final ApplicationEventPublisher events;
+
+    public SlotService(ApplicationEventPublisher events) {
+        this.events = events;
+    }
+
     public void changeStatus(ParkingSlot slot, SlotStatus next) {
         if (!ALLOWED.get(slot.getStatus()).contains(next)) {
             throw new ConflictException(
@@ -23,5 +30,7 @@ public class SlotService {
         }
         slot.setStatus(next);
         slot.setUpdatedAt(Instant.now());
+        // announce it, but it is only delivered AFTER the transaction commits
+        events.publishEvent(new SlotEvent(slot.getId(), slot.getCode(), next, slot.getUpdatedAt()));
     }
 }

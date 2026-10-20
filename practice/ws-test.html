@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Live slots test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 24px; }
+    #status { font-weight: bold; margin-bottom: 12px; }
+    #log { white-space: pre; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <h2>Live slot updates</h2>
+  <div id="status">connecting...</div>
+  <div id="log"></div>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+
+    const client = new StompJs.Client({
+      brokerURL: 'ws://localhost:8080/ws',
+      reconnectDelay: 3000,
+      onConnect: () => {
+        statusEl.textContent = 'connected';
+        client.subscribe('/topic/slots', msg => {
+          const e = JSON.parse(msg.body);
+          logEl.textContent = new Date().toLocaleTimeString() + '  '
+            + e.code + ' -> ' + e.status + '\n' + logEl.textContent;
+        });
+      },
+      onWebSocketClose: () => { statusEl.textContent = 'reconnecting...'; }
+    });
+    client.activate();
+  </script>
+</body>
+</html>
