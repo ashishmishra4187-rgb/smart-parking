@@ -5,7 +5,7 @@ import com.parking.backend.common.ConflictException;
 import com.parking.backend.common.NotFoundException;
 import com.parking.backend.parking.ParkingSlot;
 import com.parking.backend.parking.ParkingSlotRepository;
-import com.parking.backend.parking.SlotDto;
+import com.parking.backend.parking.RecommendationService;
 import com.parking.backend.parking.SlotService;
 import com.parking.backend.parking.SlotStatus;
 import com.parking.backend.parking.SlotType;
@@ -30,16 +30,19 @@ public class ReservationService {
     private final UserRepository users;
     private final SlotService slotService;
     private final AuditService audit;
+    private final RecommendationService recommendations;
 
     public ReservationService(ReservationRepository reservations, ParkingSlotRepository slots,
                               VehicleRepository vehicles, UserRepository users,
-                              SlotService slotService, AuditService audit) {
+                              SlotService slotService, AuditService audit,
+                              RecommendationService recommendations) {
         this.reservations = reservations;
         this.slots = slots;
         this.vehicles = vehicles;
         this.users = users;
         this.slotService = slotService;
         this.audit = audit;
+        this.recommendations = recommendations;
     }
 
     @Transactional
@@ -62,10 +65,12 @@ public class ReservationService {
         // LOCK the slot row: other requests for this slot now wait here
         ParkingSlot slot = slots.findByIdForUpdate(req.slotId())
                 .orElseThrow(() -> new NotFoundException("Slot " + req.slotId() + " not found"));
+
         if (slot.getStatus() != SlotStatus.AVAILABLE) {
             throw new SlotUnavailableException(
                     "Slot " + slot.getCode() + " is no longer available",
-                    alternatives(slot, vehicle.getType()));
+                    recommendations.recommend(slot.getSection().getLot().getId(),
+                            vehicle.getId(), email, 3));
         }
         if (!fits(vehicle.getType(), slot.getSlotType())) {
             throw new ConflictException(
@@ -111,17 +116,6 @@ public class ReservationService {
     public ReservationDto get(String email, Long id) {
         return reservations.findByIdAndUserEmail(id, email).map(this::toDto)
                 .orElseThrow(() -> new NotFoundException("Reservation " + id + " not found"));
-    }
-
-    private List<SlotDto> alternatives(ParkingSlot taken, VehicleType type) {
-        Long lotId = taken.getSection().getLot().getId();
-        return slots.findAllByLotId(lotId).stream()
-                .filter(s -> s.getStatus() == SlotStatus.AVAILABLE)
-                .filter(s -> !s.getId().equals(taken.getId()))
-                .filter(s -> fits(type, s.getSlotType()))
-                .limit(3)
-                .map(SlotDto::from)
-                .toList();
     }
 
     private boolean fits(VehicleType v, SlotType s) {
