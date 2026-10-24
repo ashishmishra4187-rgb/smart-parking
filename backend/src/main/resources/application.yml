@@ -11,6 +11,12 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: update
-
 server:
   port: 8080
+app:
+  recommend:
+    closeness: 0.30
+    congestion: 0.25
+    predicted: 0.20
+    type-match: 0.15
+    route: 0.10
