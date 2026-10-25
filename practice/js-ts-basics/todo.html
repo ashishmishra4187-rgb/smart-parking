@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Todo</title></head>
+<body>
+  <h1>My parking tasks</h1>
+  <input id="text" placeholder="New task">
+  <button id="add">Add</button>
+  <ul id="list"></ul>
+
+  <script>
+    let todos = [];            // STATE: array of { id, text, done }
+    let nextId = 1;
+    const listEl = document.getElementById("list");
+    const textEl = document.getElementById("text");
+
+    function render() {
+      listEl.innerHTML = "";
+      for (const t of todos) {
+        const li = document.createElement("li");
+        li.textContent = t.text;                       // textContent is safe from injected HTML
+        if (t.done) li.style.textDecoration = "line-through";
+
+        const toggle = document.createElement("button");
+        toggle.textContent = t.done ? "Undo" : "Done";
+        toggle.addEventListener("click", () => {
+          todos = todos.map((x) => (x.id === t.id ? { ...x, done: !x.done } : x));
+          render();
+        });
+
+        const del = document.createElement("button");
+        del.textContent = "Delete";
+        del.addEventListener("click", () => {
+          todos = todos.filter((x) => x.id !== t.id);
+          render();
+        });
+
+        li.append(" ", toggle, " ", del);
+        listEl.append(li);
+      }
+    }
+
+    document.getElementById("add").addEventListener("click", () => {
+      const text = textEl.value.trim();
+      if (text === "") return;
+      todos = [...todos, { id: nextId++, text, done: false }];   // new array, not push
+      textEl.value = "";
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

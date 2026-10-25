@@ -1,0 +1,17 @@
+{
+  "name": "js-ts-basics",
+  "version": "1.0.0",
+  "description": "",
+  "main": "01-basics.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
