@@ -2,9 +2,33 @@ body { font-family: system-ui, sans-serif; margin: 0; background: #f4f6f9; color
 .card { max-width: 380px; margin: 60px auto; background: #fff; padding: 24px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
 .page { max-width: 760px; margin: 0 auto; padding: 20px; }
 label { display: block; margin: 12px 0 4px; font-size: 14px; }
-input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #b8c1cc; border-radius: 6px; }
+input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #b8c1cc; border-radius: 6px; font-size: 14px; background: #fff; }
 button { margin-top: 16px; padding: 9px 14px; border: 0; border-radius: 6px; background: #14325c; color: #fff; cursor: pointer; }
 button:disabled { opacity: .6; cursor: default; }
+button.small { margin-top: 0; padding: 4px 10px; font-size: 13px; }
+button.danger { background: #9b1c1c; }
 .error { background: #fde8e8; color: #9b1c1c; padding: 8px; border-radius: 6px; margin-top: 12px; }
 .row { display: flex; justify-content: space-between; align-items: center; }
 .lot { background: #fff; padding: 14px; border-radius: 8px; margin-top: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+.topbar { display: flex; align-items: center; gap: 16px; background: #fff; padding: 10px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+.topbar nav { display: flex; gap: 8px; }
+.topbar a { text-decoration: none; color: #1d2733; padding: 4px 10px; border-radius: 6px; }
+.topbar a.active { background: #e3eaf4; font-weight: 600; }
+.spacer { flex: 1; }
+
+.form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.form-row > div { flex: 1; min-width: 140px; }
+
+table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e3e8ee; font-size: 14px; }
+th { background: #14325c; color: #fff; }
+
+.badge { display: inline-block; padding: 2px 8px; margin-right: 6px; border-radius: 10px; font-size: 12px; background: #e3eaf4; }
+.status-AVAILABLE { background: #d9f2e0; color: #14532d; }
+.status-RESERVED { background: #fff1cc; color: #7a5200; }
+.status-OCCUPIED { background: #fde8e8; color: #9b1c1c; }
+.status-MAINTENANCE { background: #e5e7eb; color: #374151; }
+
+.bar { height: 8px; background: #e3e8ee; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+.fill { height: 100%; background: #2f9e5b; }
