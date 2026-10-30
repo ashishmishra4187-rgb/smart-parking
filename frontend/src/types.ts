@@ -40,6 +40,14 @@ export interface Slot {
   y: number;
 }
 
+// mirrors your Java SlotEvent (sent on /topic/slots)
+export interface SlotEvent {
+  slotId: number;
+  code: string;
+  status: SlotStatus;
+  updatedAt: string; // an ISO date text such as 2026-10-30T10:32:05Z
+}
+
 // mirrors your Java VehicleDto
 export interface Vehicle {
   id: number;

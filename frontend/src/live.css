@@ -1,0 +1,5 @@
+.live { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; margin-left: 8px; }
+.live-live { background: #d9f2e0; color: #14532d; }
+.live-connecting { background: #e5e7eb; color: #374151; }
+.live-reconnecting { background: #fff1cc; color: #7a5200; }
+.last-change { font-size: 13px; color: #475467; margin: 8px 0 0; }
