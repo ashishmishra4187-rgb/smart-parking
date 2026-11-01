@@ -2,6 +2,8 @@ import { useCallback, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Legend from "../components/Legend";
 import ParkingMap from "../components/ParkingMap";
+import ReservePanel from "../components/ReservePanel";
+import { ErrorBox, LoadingBox } from "../components/Status";
 import { useSlotsSocket } from "../useSlotsSocket";
 import "../live.css";
 
@@ -10,7 +12,6 @@ function LotView({ id }: { id: string }) {
   const [view, setView] = useState<"map" | "table">("map");
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  // same function on every redraw, so memo on SlotCell keeps working
   const handleSelect = useCallback((slotId: number) => setSelectedId(slotId), []);
 
   const list = slots ?? [];
@@ -28,8 +29,8 @@ function LotView({ id }: { id: string }) {
         Lot {id}
         <span className={`live live-${live}`}>{liveLabel}</span>
       </h1>
-      {error && <div className="error">{error}</div>}
-      {!error && slots === null && <p>Loading...</p>}
+      {error && <ErrorBox message={error} onRetry={() => void refresh()} />}
+      {!error && slots === null && <LoadingBox text="Loading the map..." />}
 
       {slots && (
         <>
@@ -78,15 +79,13 @@ function LotView({ id }: { id: string }) {
               <strong>Slot {selected.code}</strong> (section {selected.section})
               <p>
                 Type: {selected.slotType}. Status:{" "}
-                <span className={`badge status-${selected.status}`}>{selected.status}</span>. Position: x {selected.x}, y {selected.y}.
-              </p>
-              <p>
-                {selected.status === "AVAILABLE"
-                  ? "This slot is free. Reserving from this page arrives on Day 20."
-                  : "This slot cannot be reserved right now."}
+                <span className={`badge status-${selected.status}`}>{selected.status}</span>.
+                Position: x {selected.x}, y {selected.y}.
               </p>
             </div>
           )}
+
+          <ReservePanel lotId={id} slots={slots} selectedSlot={selected} />
         </>
       )}
     </>

@@ -1,4 +1,5 @@
-const BASE = "http://localhost:8080";
+import { API_URL } from "./config";
+
 const TOKEN_KEY = "parking_token";
 
 export function getToken(): string | null {
@@ -12,9 +13,11 @@ export function setToken(token: string | null): void {
 
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  body: unknown; // the parsed JSON of the error reply, when there was one
+  constructor(status: number, message: string, body: unknown = null) {
     super(message);
     this.status = status;
+    this.body = body;
   }
 }
 
@@ -31,7 +34,7 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
 
   let res: Response;
   try {
-    res = await fetch(`${BASE}${path}`, {
+    res = await fetch(`${API_URL}${path}`, {
       method: options.method ?? "GET",
       headers,
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
@@ -49,7 +52,7 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
   const text = await res.text();
   const data = text ? JSON.parse(text) : null;
   if (!res.ok) {
-    throw new ApiError(res.status, data?.message ?? `Request failed (${res.status})`);
+    throw new ApiError(res.status, data?.message ?? `Request failed (${res.status})`, data);
   }
   return data as T;
 }

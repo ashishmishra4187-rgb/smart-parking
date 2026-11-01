@@ -1,9 +1,10 @@
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { api, getToken, setToken } from "./api";
 import type { AuthResponse, User } from "./types";
 
 const USER_KEY = "parking_user";
+const TOKEN_KEY = "parking_token"; // same key as in api.ts
 
 interface AuthValue {
   user: User | null;
@@ -14,9 +15,30 @@ interface AuthValue {
 
 const AuthContext = createContext<AuthValue | null>(null);
 
+// A JWT payload is readable by anyone, so the browser can see when it expires.
+// This is only for friendliness: the SERVER still checks the real signature and expiry.
+function tokenExpiryMs(token: string): number | null {
+  try {
+    const part = token.split(".")[1];
+    const json = atob(part.replace(/-/g, "+").replace(/_/g, "/"));
+    const exp = JSON.parse(json).exp;
+    return typeof exp === "number" ? exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
 function loadUser(): User | null {
   const raw = localStorage.getItem(USER_KEY);
-  if (!raw || !getToken()) return null;
+  const token = getToken();
+  if (!raw || !token) return null;
+  const exp = tokenExpiryMs(token);
+  if (exp !== null && exp <= Date.now()) {
+    // the saved login has already expired: clean up instead of pretending
+    setToken(null);
+    localStorage.removeItem(USER_KEY);
+    return null;
+  }
   try {
     return JSON.parse(raw) as User;
   } catch {
@@ -46,6 +68,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     localStorage.removeItem(USER_KEY);
     setUser(null);
+  }, []);
+
+  // log out by ourselves at the moment the token expires
+  useEffect(() => {
+    const token = getToken();
+    if (!user || !token) return;
+    const exp = tokenExpiryMs(token);
+    if (exp === null) return;
+    const wait = exp - Date.now();
+    if (wait <= 0) {
+      logout();
+      return;
+    }
+    const id = window.setTimeout(logout, Math.min(wait, 2_000_000_000)); // timers cannot exceed about 24 days
+    return () => window.clearTimeout(id);
+  }, [user, logout]);
+
+  // another tab logged out: follow it
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === TOKEN_KEY && e.newValue === null) setUser(null);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   return (

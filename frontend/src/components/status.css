@@ -1,0 +1,4 @@
+.status-box { color: #475467; }
+.empty-box { background: #fff; border: 1px dashed #b8c1cc; padding: 14px; border-radius: 8px; color: #475467; }
+.error button.small { margin-left: 10px; }
+.offline-banner { background: #fff1cc; color: #7a5200; text-align: center; padding: 6px 10px; font-size: 14px; }

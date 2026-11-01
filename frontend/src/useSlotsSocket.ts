@@ -2,10 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
 import { ApiError, api } from "./api";
 import { useAuth } from "./auth";
+import { WS_URL } from "./config";
 import { STATUS_ORDER } from "./slotInfo";
 import type { Slot, SlotEvent } from "./types";
-
-const WS_URL = "ws://localhost:8080/ws"; // use wss:// when the site is served over HTTPS
 
 export type LiveState = "connecting" | "live" | "reconnecting";
 
