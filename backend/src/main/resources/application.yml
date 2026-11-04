@@ -14,6 +14,9 @@ spring:
 server:
   port: 8080
 app:
+  gate:
+    min-confidence: 0.60
+    debounce-seconds: 15
   cors:
     allowed-origin: http://localhost:5173
   recommend:
