@@ -8,6 +8,7 @@ import "./components/reserve.css";
 export default function Layout() {
   const { user, logout } = useAuth();
   const { items, unread, markRead } = useNotifications();
+  const isManager = user?.role === "MANAGER" || user?.role === "ADMIN";
 
   return (
     <>
@@ -18,6 +19,8 @@ export default function Layout() {
           <NavLink to="/lots">Lots</NavLink>
           <NavLink to="/reservations">My reservations</NavLink>
           <NavLink to="/vehicles">My vehicles</NavLink>
+          {isManager && <NavLink to="/manager" end>Manager</NavLink>}
+          {isManager && <NavLink to="/manager/gate">Gate and reviews</NavLink>}
         </nav>
         <span className="spacer" />
         <NotificationBell items={items} unread={unread} onRead={markRead} />

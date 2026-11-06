@@ -3,11 +3,14 @@ import Layout from "./Layout";
 import LotDetail from "./pages/LotDetail";
 import Lots from "./pages/Lots";
 import Login from "./pages/Login";
+import ManagerGate from "./pages/ManagerGate";
+import ManagerHome from "./pages/ManagerHome";
 import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
 import Reservations from "./pages/Reservations";
 import Vehicles from "./pages/Vehicles";
 import RequireAuth from "./RequireAuth";
+import RequireRole from "./RequireRole";
 
 export default function App() {
   return (
@@ -21,6 +24,10 @@ export default function App() {
           <Route path="/lots/:id" element={<LotDetail />} />
           <Route path="/reservations" element={<Reservations />} />
           <Route path="/vehicles" element={<Vehicles />} />
+          <Route element={<RequireRole roles={["MANAGER", "ADMIN"]} />}>
+            <Route path="/manager" element={<ManagerHome />} />
+            <Route path="/manager/gate" element={<ManagerGate />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
