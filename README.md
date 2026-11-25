@@ -1,22 +1,20 @@
 # Smart Parking Management System
 
-A real-time parking reservation system: drivers reserve slots, a camera reads
-number plates at the gate, and managers monitor everything live.
+**Java 21 · Spring Boot · PostgreSQL · React · TypeScript · OpenCV · EasyOCR**
 
-## Tech stack
-- Backend: Java 21, Spring Boot 4.1, Spring Data JPA, PostgreSQL 18
-- Frontend (planned): React + TypeScript
-- Vision / ML (planned): Python, OpenCV, EasyOCR, scikit-learn
+A driver reserves a parking space through the web app. At the gate, a Python service reads a number plate and can send an entry or exit event to the backend. Managers have a separate dashboard and gate view.
 
-## Project status
-Week 1 complete: database, entities, seed data, REST read endpoints, vehicle registration.
+| Follow the workflow | Explore the implementation |
+| --- | --- |
+| Find a lot, inspect slots and manage a reservation | [Driver screens](frontend/src/pages) · [Reservation API](backend/src/main/java/com/parking/backend/reservation) |
+| Keep an open slot view in sync | [React WebSocket hook](frontend/src/useSlotsSocket.ts) |
+| Read a plate and submit a gate event | [Plate reader](cv/plate_reader.py) · [Gate client](cv/gate_client.py) · [Gate API](backend/src/main/java/com/parking/backend/gate) |
 
-## Folder layout
-- `backend/` Spring Boot application
-- `frontend/` React app (not started)
-- `cv/` number plate reading (not started)
-- `ml/` occupancy prediction (not started)
-- `practice/` small learning experiments
+### Inside the plate reader
+
+![Plate preprocessing example](cv/out/1_original.png) → ![Cropped plate](cv/out/6_crop.png)
+
+The repository includes labeled synthetic plates with blur, noise, tilt and low light. From `cv/`, run `python -m pip install -r requirements.txt` and `python read_plates.py --only blur` to compare OCR output with the expected registrations.
 
 ## How to run the backend
 1. Install JDK 21, PostgreSQL 18 and Maven (the project includes a wrapper).
@@ -39,15 +37,10 @@ Week 1 complete: database, entities, seed data, REST read endpoints, vehicle reg
 
 On first start the app creates the tables and seeds one lot, 3 sections and 24 slots.
 
-## API (so far)
-| Method | URL | Purpose |
-|---|---|---|
-| GET | `/api/health` | App and database status |
-| GET | `/api/parking/lots` | Lots with live slot counts |
-| GET | `/api/parking/lots/{id}/slots` | All slots of a lot |
-| POST | `/api/vehicles` | Register a vehicle (temporary, no login yet) |
-| GET | `/api/vehicles` | List vehicles |
+## Run the frontend
 
-## Known limitations
-- No authentication yet (a temporary demo user owns all vehicles).
-- `ddl-auto: update` is used for development convenience.
+From `frontend/`, run `npm ci` and `npm run dev`. Open the Vite URL, register a driver, add a vehicle and inspect a lot. The backend defaults to port 8080 and allows the frontend origin `http://localhost:5173`.
+
+## Development notes
+
+PostgreSQL schema updates use Hibernate in the local profile. The camera and sample-image tools live in [cv/](cv/). The [practice directory](practice/) contains separate learning exercises.
