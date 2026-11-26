@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: parking
+      POSTGRES_USER: parking
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+    volumes:
+      - parking-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parking -d parking"]
+      interval: 5s
+      timeout: 4s
+      retries: 15
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/parking
+      SPRING_DATASOURCE_USERNAME: parking
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      APP_JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      APP_JWT_EXPIRATION_MINUTES: 60
+      APP_GATE_APIKEY: ${PARKING_GATE_KEY:?Set PARKING_GATE_KEY}
+      APP_SEED_MANAGERPASSWORD: ${MANAGER_PASSWORD:?Set MANAGER_PASSWORD}
+      APP_CORS_ALLOWEDORIGIN: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN}
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8088:80"
+    depends_on:
+      - backend
+volumes:
+  parking-data:

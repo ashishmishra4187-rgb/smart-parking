@@ -3,6 +3,13 @@ package com.parking.backend.reservation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.parking.backend.common.ConflictException;
+import com.parking.backend.gate.DetectionRequest;
+import com.parking.backend.gate.GateDecision;
+import com.parking.backend.gate.GateService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.support.TransactionTemplate;
+import java.util.concurrent.TimeUnit;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.parking.backend.parking.ParkingSlot;
 import com.parking.backend.parking.ParkingSlotRepository;
 import com.parking.backend.parking.SlotStatus;
@@ -23,12 +30,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-@SpringBootTest(properties = "spring.datasource.url=jdbc:postgresql://localhost:5432/parking_test_db")
+@SpringBootTest(properties = "spring.datasource.url=${PARKING_TEST_JDBC_URL:jdbc:postgresql://localhost:5432/parking_test_db}")
 class ReservationConcurrencyTest {
 
     private static final int THREADS = 5;
 
     @Autowired ReservationService service;
+    @Autowired GateService gate;
+    @Autowired TransactionTemplate transactions;
+    @Autowired JdbcTemplate jdbc;
     @Autowired ReservationRepository reservations;
     @Autowired VehicleRepository vehicles;
     @Autowired UserRepository users;
@@ -41,34 +51,25 @@ class ReservationConcurrencyTest {
 
     @BeforeEach
     void setUp() {
-        // start from a clean state (this is the TEST database, not your real one)
-        reservations.deleteAll();
-        vehicles.deleteAll();
-        for (int i = 1; i <= THREADS; i++) {
-            users.findByEmail("race" + i + "@test.local").ifPresent(users::delete);
-        }
-        emails.clear();
-        vehicleIds.clear();
-
-        // make sure slot A2 is free
         ParkingSlot slot = slots.findAll().stream()
-                .filter(s -> s.getCode().equals("A2")).findFirst().orElseThrow();
-        slot.setStatus(SlotStatus.AVAILABLE);
-        slots.save(slot);
+                .filter(s -> s.getCode().equals("A2") && s.getStatus() == SlotStatus.AVAILABLE)
+                .findFirst().orElseThrow();
         slotId = slot.getId();
+        String run = java.util.UUID.randomUUID().toString();
+        int suffix = java.util.concurrent.ThreadLocalRandom.current().nextInt(10000);
 
         // five different drivers, each with their own vehicle
         for (int i = 1; i <= THREADS; i++) {
             User u = new User();
             u.setName("Racer " + i);
-            u.setEmail("race" + i + "@test.local");
+            u.setEmail("race-" + run + "-" + i + "@test.local");
             u.setPasswordHash(encoder.encode("Passw0rd!x"));
             u.setRole(Role.DRIVER);
             u = users.save(u);
 
             Vehicle v = new Vehicle();
             v.setUser(u);
-            v.setPlateNumber("TS01AB000" + i);
+            v.setPlateNumber("TS0" + i + "AB" + String.format("%04d", suffix));
             vehicleIds.add(vehicles.save(v).getId());
             emails.add(u.getEmail());
         }
@@ -109,7 +110,42 @@ class ReservationConcurrencyTest {
 
         System.out.println("WINNERS: " + wins + " of " + THREADS);
         assertEquals(1, wins, "exactly one driver must get the slot");
-        assertEquals(1, reservations.count(), "exactly one reservation row");
+        assertEquals(1, emails.stream().mapToLong(email -> reservations.findByUserEmailOrderByCreatedAtDesc(email).size()).sum(), "exactly one reservation row");
         assertEquals(SlotStatus.RESERVED, slots.findById(slotId).orElseThrow().getStatus());
+
+        // Continue with the winning driver. Hold the admitted vehicle's slot lock until
+        // PostgreSQL confirms that cancellation is waiting on this exact transaction.
+        String winner = emails.stream().filter(email -> !reservations.findByUserEmailOrderByCreatedAtDesc(email).isEmpty()).findFirst().orElseThrow();
+        Long reservationId = reservations.findByUserEmailOrderByCreatedAtDesc(winner).get(0).getId();
+        String plate = vehicles.findById(vehicleIds.get(emails.indexOf(winner))).orElseThrow().getPlateNumber();
+        DetectionRequest reading = new DetectionRequest(plate, 1.0);
+        ExecutorService canceller = Executors.newSingleThreadExecutor();
+        try {
+            Future<Boolean> rejected = transactions.execute(tx -> {
+                assertEquals(GateDecision.APPROVED, gate.enter(reading).decision());
+                int backendPid = jdbc.queryForObject("select pg_backend_pid()", Integer.class);
+                Future<Boolean> cancellation = canceller.submit(() -> {
+                    try {
+                        service.cancel(winner, reservationId);
+                        return false;
+                    } catch (ConflictException expected) {
+                        return true;
+                    }
+                });
+                long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+                while (!jdbc.queryForObject("select exists(select 1 from pg_stat_activity a "
+                        + "where ? = any(pg_blocking_pids(a.pid)))", Boolean.class, backendPid)) {
+                    assertTrue(System.nanoTime() < deadline, "Cancellation never waited for the gate lock");
+                    java.util.concurrent.locks.LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(20));
+                }
+                return cancellation;
+            });
+            assertTrue(rejected.get(10, TimeUnit.SECONDS));
+            assertEquals(SlotStatus.OCCUPIED, slots.findById(slotId).orElseThrow().getStatus());
+            assertEquals(GateDecision.APPROVED, gate.exit(reading).decision());
+            assertEquals(SlotStatus.AVAILABLE, slots.findById(slotId).orElseThrow().getStatus());
+        } finally {
+            canceller.shutdownNow();
+        }
     }
 }

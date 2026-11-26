@@ -13,6 +13,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     Optional<Reservation> findByIdAndUserEmail(Long id, String email);
 
+    @Query("select r.slot.id from Reservation r where r.id = :id and r.user.email = :email")
+    Optional<Long> findOwnedSlotId(@Param("id") Long id, @Param("email") String email);
+
     List<Reservation> findByUserEmailOrderByCreatedAtDesc(String email);
 
     long countByUserEmailAndStatus(String email, ReservationStatus status);

@@ -94,11 +94,13 @@ public class ReservationService {
 
     @Transactional
     public void cancel(String email, Long id) {
+        Long slotId = reservations.findOwnedSlotId(id, email)
+                .orElseThrow(() -> new NotFoundException("Reservation " + id + " not found"));
+        ParkingSlot slot = slots.findByIdForUpdate(slotId)
+                .orElseThrow(() -> new NotFoundException("Slot not found"));
         Reservation r = reservations.findByIdAndUserEmail(id, email)
                 .orElseThrow(() -> new NotFoundException("Reservation " + id + " not found"));
-        ParkingSlot slot = slots.findByIdForUpdate(r.getSlot().getId())
-                .orElseThrow(() -> new NotFoundException("Slot not found"));
-        if (r.getStatus() != ReservationStatus.ACTIVE) {
+        if (r.getStatus() != ReservationStatus.ACTIVE || slot.getStatus() != SlotStatus.RESERVED) {
             throw new ConflictException("Only an active reservation can be cancelled");
         }
         r.setStatus(ReservationStatus.CANCELLED);

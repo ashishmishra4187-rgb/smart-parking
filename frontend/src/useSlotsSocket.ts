@@ -38,6 +38,7 @@ export function useSlotsSocket(lotId: string) {
   const [lastChange, setLastChange] = useState<LastChange | null>(null);
 
   const buffer = useRef<SlotEvent[] | null>(null); // not null while a load is in flight
+  const members = useRef(new Set<number>());
   const loadSeq = useRef(0); // numbers each load so only the newest one counts
   const path = `/api/parking/lots/${lotId}/slots`;
 
@@ -47,7 +48,10 @@ export function useSlotsSocket(lotId: string) {
     try {
       const data = await api<Slot[]>(path);
       if (mine !== loadSeq.current) return; // a newer load started: ignore this old answer
-      const buffered = buffer.current ?? [];
+      members.current = new Set(data.map((slot) => slot.id));
+      const buffered = (buffer.current ?? []).filter((event) => members.current.has(event.slotId));
+      const latest = buffered[buffered.length - 1];
+      if (latest) setLastChange({ code: latest.code, status: latest.status, time: new Date().toLocaleTimeString() });
       buffer.current = null;
       setSlots(buffered.reduce(applyEvent, data)); // snapshot first, then replay what arrived meanwhile
       setError(null);
@@ -63,31 +67,37 @@ export function useSlotsSocket(lotId: string) {
   }, [path, logout]);
 
   useEffect(() => {
+    members.current.clear();
+    setLastChange(null);
+    setSlots(null);
+    let active = true;
     void load(); // first load over REST, so the page works even if the socket is down
 
     const client = new Client({
       brokerURL: WS_URL,
       reconnectDelay: 3000, // try again every 3 seconds after a drop
       onConnect: () => {
+        if (!active) return;
         setLive("live");
         client.subscribe("/topic/slots", (msg) => {
           const e = parseEvent(msg.body);
-          if (!e) return;
-          setLastChange({ code: e.code, status: e.status, time: new Date().toLocaleTimeString() });
+          if (!active || !e) return;
           if (buffer.current !== null) {
             buffer.current.push(e); // a load is running: keep the event for later
-          } else {
+          } else if (members.current.has(e.slotId)) {
+            setLastChange({ code: e.code, status: e.status, time: new Date().toLocaleTimeString() });
             setSlots((prev) => (prev ? applyEvent(prev, e) : prev));
           }
         });
         void load(); // fetch AFTER subscribing, so no change can slip through the gap
       },
-      onWebSocketClose: () => setLive("reconnecting"),
+      onWebSocketClose: () => { if (active) setLive("reconnecting"); },
       onStompError: (frame) => console.error("STOMP error:", frame.headers["message"]),
     });
     client.activate();
 
     return () => {
+      active = false;
       loadSeq.current += 1; // forget any load still in flight
       buffer.current = null;
       void client.deactivate(); // close the socket when the page is left

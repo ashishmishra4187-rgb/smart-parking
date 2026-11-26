@@ -44,3 +44,21 @@ From `frontend/`, run `npm ci` and `npm run dev`. Open the Vite URL, register a 
 ## Development notes
 
 PostgreSQL schema updates use Hibernate in the local profile. The camera and sample-image tools live in [cv/](cv/). The [practice directory](practice/) contains separate learning exercises.
+
+## Deploy the web app and gate API
+
+Use Docker Compose on a server with persistent disk. The stack runs PostgreSQL 18, the Java backend, and an Nginx frontend. The frontend serves browser routes and proxies both API requests and WebSocket connections. Configure one backend replica for the in-memory WebSocket broker.
+
+Create an untracked `.env` beside `compose.yaml` and set these values:
+
+| Variable | Value |
+| --- | --- |
+| PUBLIC_ORIGIN | Exact browser origin, for example `https://parking.example.com`, without a trailing slash |
+| DB_PASSWORD | Random database password |
+| JWT_SECRET | Random signing secret of at least 32 bytes |
+| PARKING_GATE_KEY | Random shared gate key of at least 16 characters |
+| MANAGER_PASSWORD | Strong initial password for the seeded manager account |
+
+Run `docker compose up -d --build`. The web service listens on the host loopback address at port 8088. Point an HTTPS reverse proxy at `127.0.0.1:8088`, preserve the browser origin, and enable WebSocket upgrades for `/ws`. For a local Compose check use `PUBLIC_ORIGIN=http://localhost:8088`. Verify `/api/health`, driver registration, and a reservation. The initial manager login is `manager@parking.local`. The seed password applies when that account is created.
+
+PostgreSQL stores its data in the named volume `parking-data`. Back up the database before upgrading because this version uses Hibernate schema updates. Install the Python camera client at the physical gate with its camera dependencies, set `PARKING_API_URL` to the HTTPS origin and `PARKING_GATE_KEY` to the backend's gate key. A registered driver needs an active reservation to enter.
