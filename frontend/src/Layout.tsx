@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import NotificationBell from "./components/NotificationBell";
 import OfflineBanner from "./components/OfflineBanner";
 import { useAuth } from "./auth";
@@ -6,12 +6,13 @@ import { useNotifications } from "./useNotifications";
 import "./components/reserve.css";
 
 export default function Layout() {
+  const { pathname } = useLocation();
   const { user, logout } = useAuth();
   const { items, unread, markRead } = useNotifications();
   const isManager = user?.role === "MANAGER" || user?.role === "ADMIN";
 
   return (
-    <>
+    <div className={pathname.startsWith("/manager") ? "" : "night-garage"}>
       <OfflineBanner />
       <header className="topbar">
         <strong>Smart Parking</strong>
@@ -30,6 +31,6 @@ export default function Layout() {
       <main className="page">
         <Outlet />
       </main>
-    </>
+    </div>
   );
 }

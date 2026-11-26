@@ -8,7 +8,7 @@ export default function Lots() {
 
   return (
     <>
-      <h1>Parking lots</h1>
+      <header className="night-hero"><small>SMART PARKING</small><h1>Find parking.</h1>{lots && <p>{lots.reduce((sum, lot) => sum + lot.available, 0)} spaces available across {lots.length} {lots.length === 1 ? "lot" : "lots"}</p>}</header>
       {error && <ErrorBox message={error} onRetry={reload} />}
       {!error && lots === null && <LoadingBox />}
       {lots?.length === 0 && <EmptyBox>No parking lots have been set up yet.</EmptyBox>}

@@ -14,7 +14,12 @@ function LotView({ id }: { id: string }) {
 
   const handleSelect = useCallback((slotId: number) => setSelectedId(slotId), []);
 
+  const [zone, setZone] = useState("");
   const list = slots ?? [];
+  const zones = [...new Set(list.map(slot => slot.section))].sort();
+  const activeZone = zones.includes(zone) ? zone : zones[0];
+  const visible = list.filter(slot => slot.section === activeZone);
+  const open = visible.filter(slot => slot.status === "AVAILABLE");
   const selected = list.find((s) => s.id === selectedId) ?? null;
   const counts = list.reduce<Record<string, number>>((acc, s) => {
     acc[s.status] = (acc[s.status] ?? 0) + 1;
@@ -25,10 +30,10 @@ function LotView({ id }: { id: string }) {
   return (
     <>
       <p><Link to="/lots">&larr; All lots</Link></p>
-      <h1>
-        Lot {id}
+      <header className="night-hero"><small>LOT {id}</small><h1>
+        Choose your bay.
         <span className={`live live-${live}`}>{liveLabel}</span>
-      </h1>
+      </h1></header>
       {error && <ErrorBox message={error} onRetry={() => void refresh()} />}
       {!error && slots === null && <LoadingBox text="Loading the map..." />}
 
@@ -53,7 +58,13 @@ function LotView({ id }: { id: string }) {
 
           {view === "map" ? (
             <>
-              <ParkingMap slots={slots} selectedId={selectedId} onSelect={handleSelect} />
+              <div className="zone-controls" aria-label="Parking zones">
+                {zones.map(name => <button key={name} aria-pressed={activeZone === name}
+                  onClick={() => {setZone(name); setSelectedId(null)}}>Zone {name} ? {list.filter(slot => slot.section === name && slot.status === "AVAILABLE").length} free</button>)}
+              </div>
+              <progress aria-label="Available spaces in selected zone" value={open.length} max={visible.length || 1} />
+              <ParkingMap slots={visible} selectedId={selectedId} onSelect={handleSelect} />
+              <button disabled={!open.length} onClick={() => handleSelect(open[0].id)}>Find an open bay</button>
               <Legend />
             </>
           ) : (

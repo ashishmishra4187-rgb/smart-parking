@@ -31,4 +31,28 @@ th { background: #14325c; color: #fff; }
 .status-MAINTENANCE { background: #e5e7eb; color: #374151; }
 
 .bar { height: 8px; background: #e3e8ee; border-radius: 4px; overflow: hidden; margin: 8px 0; }
-.fill { height: 100%; background: #2f9e5b; }
+.fill { height: 100%; background: #2f9e5b; }.night-garage { min-height:100vh; background:#101820; color:#e5f2f4; font-family:"Segoe UI",system-ui,sans-serif; }
+.night-garage .page { max-width:1060px; padding:clamp(16px,4vw,44px); }
+.night-garage .topbar { flex-wrap:wrap; background:#172630; color:#e5f2f4; border-bottom:1px solid #344950; }
+.night-garage .topbar strong:before { content:"P"; display:inline-grid; place-items:center; width:30px; height:30px; margin-right:8px; border-radius:8px; background:#72e6ef; color:#10252e; }
+.night-garage nav,.zone-controls {display:flex; flex-wrap:wrap; gap:8px}
+.night-garage a,.night-garage .score,.night-garage .row-label {color:#8be5ee}
+.night-garage .topbar a.active,.night-garage .zone-controls button[aria-pressed=true],.night-garage .cell.selected {background:#72e6ef;color:#10262e}
+.night-hero {padding:clamp(22px,4vw,42px);border-radius:18px;background:linear-gradient(110deg,#192d3d,#234651);margin-bottom:22px}
+.night-hero small {color:#91e7e9;letter-spacing:.12em;font-weight:700}
+.night-hero h1 {font-size:clamp(32px,5vw,58px);letter-spacing:-.055em;margin:6px 0}
+.night-garage .lot,.night-garage .panel,.night-garage .details,.night-garage .res,.night-garage .rec,.night-garage .bell-panel,.night-garage table {background:#1b2833;color:#e5f2f4;border:1px solid #344550;border-radius:12px}
+.night-garage .lot,.night-garage .panel {padding:20px}
+.night-garage .lot strong {font-size:21px}
+.night-garage .map-wrap,.night-garage .selected-box {background:#14252d}
+.night-garage .tags-help,.night-garage .muted,.night-garage .status-box {color:#b5cbd2}
+.night-garage .conflict,.night-garage .empty-box,.night-garage .badge {color:#24343d}
+.night-garage .fill,.night-garage .meter-fill {background:#56bfc9}
+.night-garage .bar,.night-garage .meter {background:#394e59}
+.night-garage .cell.status-AVAILABLE {background:#193540;color:#b4f0ed;border:2px dashed #519399}
+.night-garage .cell.status-OCCUPIED {background:repeating-linear-gradient(135deg,#2a3944 0 6px,#32434e 6px 12px);color:#d2dfe3}
+.night-garage .cell.selected {background:#72e6ef;color:#12232b;border:2px solid #72e6ef;box-shadow:0 0 0 2px #203c48,0 0 0 4px #64bdc8}
+.zone-controls button {background:#213641;color:#c9e8eb;border:1px solid #55757c}
+.night-garage progress {width:100%;height:8px;accent-color:#72e6ef;margin-top:12px}
+.night-garage button:focus-visible,.night-garage a:focus-visible {outline:3px solid #efa84e;outline-offset:3px}
+@media(max-width:700px){.night-garage nav{order:1;width:100%}.night-garage .topbar{gap:7px}.night-garage .bell-panel{position:fixed;top:64px;left:4vw;width:85vw}.night-garage table{display:block;overflow:auto}}
