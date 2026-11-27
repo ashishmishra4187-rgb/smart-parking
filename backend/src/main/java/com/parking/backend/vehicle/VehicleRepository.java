@@ -8,4 +8,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     boolean existsByPlateNumber(String plateNumber);
     List<Vehicle> findByUserEmail(String email);
     Optional<Vehicle> findByIdAndUserEmail(Long id, String email);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    Optional<Vehicle> findLockedByIdAndUserEmail(Long id, String email);
 }

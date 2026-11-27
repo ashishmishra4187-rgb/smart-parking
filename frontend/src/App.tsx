@@ -1,3 +1,4 @@
+import Visits from "./pages/Visits";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./Layout";
 import LotDetail from "./pages/LotDetail";
@@ -23,9 +24,11 @@ export default function App() {
           <Route path="/lots" element={<Lots />} />
           <Route path="/lots/:id" element={<LotDetail />} />
           <Route path="/reservations" element={<Reservations />} />
+          <Route path="/visits" element={<Visits />} />
           <Route path="/vehicles" element={<Vehicles />} />
           <Route element={<RequireRole roles={["MANAGER", "ADMIN"]} />}>
             <Route path="/manager" element={<ManagerHome />} />
+            <Route path="/manager/cashier" element={<Visits cashier />} />
             <Route path="/manager/gate" element={<ManagerGate />} />
           </Route>
           <Route path="*" element={<NotFound />} />

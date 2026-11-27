@@ -37,6 +37,7 @@ class ReservationConcurrencyTest {
 
     @Autowired ReservationService service;
     @Autowired GateService gate;
+    @Autowired com.parking.backend.gate.VisitController visits;
     @Autowired TransactionTemplate transactions;
     @Autowired JdbcTemplate jdbc;
     @Autowired ReservationRepository reservations;
@@ -141,7 +142,24 @@ class ReservationConcurrencyTest {
                 return cancellation;
             });
             assertTrue(rejected.get(10, TimeUnit.SECONDS));
+            assertEquals(GateDecision.DENIED, gate.exit(reading).decision());
+            assertEquals(SlotStatus.RESERVED, slots.findById(slotId).orElseThrow().getStatus());
+            var held = visits.mine(() -> winner).get(0);
+            var camera = new com.parking.backend.gate.VisitController.Observation(plate, 1.0, held.lotId(), held.bay(), true);
+            visits.observe(camera);
             assertEquals(SlotStatus.OCCUPIED, slots.findById(slotId).orElseThrow().getStatus());
+            visits.cash(held.id(), held.rupees());
+            assertEquals(GateDecision.APPROVED, gate.exit(reading).decision());
+            assertEquals(SlotStatus.AVAILABLE, slots.findById(slotId).orElseThrow().getStatus());
+            assertEquals(GateDecision.APPROVED, gate.enter(reading).decision());
+            var walkIn = visits.mine(() -> winner).get(0);
+            org.junit.jupiter.api.Assertions.assertNull(walkIn.bay());
+            visits.choose(() -> winner, walkIn.id(), slotId);
+            visits.observe(new com.parking.backend.gate.VisitController.Observation(plate, 1.0, held.lotId(), held.section(), false));
+            assertEquals(held.section(), visits.mine(() -> winner).get(0).checkpoint());
+            visits.observe(camera);
+            assertEquals(GateDecision.DENIED, gate.exit(reading).decision());
+            visits.cash(walkIn.id(), walkIn.rupees());
             assertEquals(GateDecision.APPROVED, gate.exit(reading).decision());
             assertEquals(SlotStatus.AVAILABLE, slots.findById(slotId).orElseThrow().getStatus());
         } finally {

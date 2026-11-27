@@ -77,7 +77,7 @@ def announce(direction, answer):
 
 def main():
     parser = argparse.ArgumentParser(description="Gate camera: read plates, confirm them, ask the server")
-    parser.add_argument("--direction", choices=["entry", "exit"], default="entry")
+    parser.add_argument("--direction", choices=["entry", "exit", "checkpoint"], default="entry")
     parser.add_argument("--source", default="0", help="a camera number (0, 1...) or a folder of images")
     parser.add_argument("--only", default="", help="folder mode: only files whose name contains this")
     parser.add_argument("--repeat", type=int, default=3, help="folder mode: frames shown per image")

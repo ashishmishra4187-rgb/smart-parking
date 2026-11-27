@@ -7,6 +7,13 @@ import org.springframework.data.repository.query.Param;
 
 public interface ParkingSessionRepository extends JpaRepository<ParkingSession, Long> {
 
+    java.util.List<ParkingSession> findByVehicleUserEmailAndStatus(String email, SessionStatus status);
+    java.util.List<ParkingSession> findByStatus(SessionStatus status);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from ParkingSession s where s.id = :id")
+    Optional<ParkingSession> lockVisit(@Param("id") Long id);
+
     Optional<ParkingSession> findByVehicleIdAndStatus(Long vehicleId, SessionStatus status);
 
     Optional<ParkingSession> findFirstByVehicleIdAndStatusOrderByExitTimeDesc(Long vehicleId, SessionStatus status);

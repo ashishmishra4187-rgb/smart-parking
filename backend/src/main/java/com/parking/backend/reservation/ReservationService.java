@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ReservationService {
 
+    private final com.parking.backend.gate.ParkingSessionRepository sessions;
     private final ReservationRepository reservations;
     private final ParkingSlotRepository slots;
     private final VehicleRepository vehicles;
@@ -32,10 +33,11 @@ public class ReservationService {
     private final AuditService audit;
     private final RecommendationService recommendations;
 
-    public ReservationService(ReservationRepository reservations, ParkingSlotRepository slots,
+    public ReservationService(com.parking.backend.gate.ParkingSessionRepository sessions, ReservationRepository reservations, ParkingSlotRepository slots,
                               VehicleRepository vehicles, UserRepository users,
                               SlotService slotService, AuditService audit,
                               RecommendationService recommendations) {
+        this.sessions = sessions;
         this.reservations = reservations;
         this.slots = slots;
         this.vehicles = vehicles;
@@ -55,8 +57,11 @@ public class ReservationService {
             throw new ConflictException("Reservations are restricted for this account");
         }
 
-        Vehicle vehicle = vehicles.findByIdAndUserEmail(req.vehicleId(), email)
+        Vehicle vehicle = vehicles.findLockedByIdAndUserEmail(req.vehicleId(), email)
                 .orElseThrow(() -> new NotFoundException("Vehicle " + req.vehicleId() + " not found"));
+        if (sessions.findIdByVehicleAndStatus(vehicle.getId(), com.parking.backend.gate.SessionStatus.ACTIVE).isPresent()) {
+            throw new ConflictException("Vehicle is inside. Choose a bay in My visit.");
+        }
         if (reservations.existsByVehicleIdAndStatus(vehicle.getId(), ReservationStatus.ACTIVE)) {
             throw new ConflictException(
                     "Vehicle " + vehicle.getPlateNumber() + " already has an active reservation");
@@ -120,7 +125,7 @@ public class ReservationService {
                 .orElseThrow(() -> new NotFoundException("Reservation " + id + " not found"));
     }
 
-    private boolean fits(VehicleType v, SlotType s) {
+    public static boolean fits(VehicleType v, SlotType s) {
         return switch (v) {
             case BIKE -> s == SlotType.BIKE;
             case EV -> s == SlotType.EV || s == SlotType.CAR || s == SlotType.VISITOR;

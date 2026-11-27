@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface ActiveSessionQueryRepository extends JpaRepository<ParkingSession, Long> {
 
-    @Query("select s from ParkingSession s join fetch s.vehicle join fetch s.slot "
+    @Query("select s from ParkingSession s join fetch s.vehicle left join fetch s.slot "
             + "where s.status = :status order by s.entryTime desc")
     List<ParkingSession> findByStatusWithDetails(@Param("status") SessionStatus status);
 

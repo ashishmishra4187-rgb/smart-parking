@@ -16,15 +16,22 @@ class GateBusy(GateError):
 
 def send_detection(plate: str, confidence: float, direction: str = "entry") -> dict:
     """POST one reading to the gate. The secret key is read from the environment, never from a file."""
-    if direction not in ("entry", "exit"):
+    if direction not in ("entry", "exit", "checkpoint"):
         raise ValueError("direction must be 'entry' or 'exit'")
     key = os.environ.get("PARKING_GATE_KEY")
     if not key:
         raise GateError("Set PARKING_GATE_KEY in this terminal first")
+    payload = {"plate": plate, "confidence": round(max(0.0, min(1.0, float(confidence))), 3)}
+    if direction == "checkpoint":
+        position = os.environ.get("PARKING_CAMERA_POSITION")
+        lot = os.environ.get("PARKING_CAMERA_LOT", "")
+        if not position or not lot.isdecimal():
+            raise GateError("Set PARKING_CAMERA_LOT and PARKING_CAMERA_POSITION for the interior camera")
+        payload.update(lotId=int(lot), checkpoint=position, bayCamera=os.environ.get("PARKING_CAMERA_KIND") == "bay")
     try:
         response = requests.post(
             f"{BASE_URL}/api/detection/{direction}",
-            json={"plate": plate, "confidence": round(max(0.0, min(1.0, float(confidence))), 3)},
+            json=payload,
             headers={"X-API-Key": key},
             timeout=5,
         )
@@ -32,6 +39,10 @@ def send_detection(plate: str, confidence: float, direction: str = "entry") -> d
         raise GateBusy(f"cannot reach {BASE_URL}. Is Spring Boot running?") from None
     except requests.exceptions.Timeout:
         raise GateBusy("no answer within 5 seconds") from None
+    if direction == "checkpoint" and response.status_code in (404, 409):
+        return {"decision": "DENIED", "plate": plate, "reason": response.json().get("message", "Observation rejected")}
+    if direction == "checkpoint" and response.status_code in (404, 409):
+        return {"decision": "DENIED", "plate": plate, "reason": response.json().get("message", "Reading ignored")}
     if response.status_code == 401:
         raise GateError("HTTP 401: wrong or missing key. Does PARKING_GATE_KEY match app.gate.api-key?")
     if response.status_code >= 500:

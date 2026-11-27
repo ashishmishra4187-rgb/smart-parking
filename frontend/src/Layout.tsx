@@ -19,8 +19,10 @@ export default function Layout() {
         <nav aria-label="Main navigation">
           <NavLink to="/lots">Lots</NavLink>
           <NavLink to="/reservations">My reservations</NavLink>
+          <NavLink to="/visits">My visit</NavLink>
           <NavLink to="/vehicles">My vehicles</NavLink>
           {isManager && <NavLink to="/manager" end>Manager</NavLink>}
+          {isManager && <NavLink to="/manager/cashier">Cashier</NavLink>}
           {isManager && <NavLink to="/manager/gate">Gate and reviews</NavLink>}
         </nav>
         <div className="account-controls">

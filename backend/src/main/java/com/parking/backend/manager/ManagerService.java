@@ -72,7 +72,7 @@ public class ManagerService {
     public List<ActiveSessionDto> carsInside() {
         Instant now = Instant.now();
         return sessions.findByStatusWithDetails(SessionStatus.ACTIVE).stream()
-                .map(s -> new ActiveSessionDto(s.getId(), s.getVehicle().getPlateNumber(), s.getSlot().getCode(),
+                .map(s -> new ActiveSessionDto(s.getId(), s.getVehicle().getPlateNumber(), s.slotCode() == null ? "Awaiting bay" : s.slotCode(),
                         s.getEntryTime(), Duration.between(s.getEntryTime(), now).toMinutes()))
                 .toList();
     }

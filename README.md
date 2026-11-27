@@ -61,4 +61,12 @@ Create an untracked `.env` beside `compose.yaml` and set these values:
 
 Run `docker compose up -d --build`. The web service listens on the host loopback address at port 8088. Point an HTTPS reverse proxy at `127.0.0.1:8088`, preserve the browser origin, and enable WebSocket upgrades for `/ws`. For a local Compose check use `PUBLIC_ORIGIN=http://localhost:8088`. Verify `/api/health`, driver registration, and a reservation. The initial manager login is `manager@parking.local`. The seed password applies when that account is created.
 
-PostgreSQL stores its data in the named volume `parking-data`. Back up the database before upgrading because this version uses Hibernate schema updates. Install the Python camera client at the physical gate with its camera dependencies, set `PARKING_API_URL` to the HTTPS origin and `PARKING_GATE_KEY` to the backend's gate key. A registered driver needs an active reservation to enter.
+PostgreSQL stores its data in the named volume `parking-data`. Back up the database before upgrading because this version uses Hibernate schema updates. Install the Python camera client at the physical gate with its camera dependencies, set `PARKING_API_URL` to the HTTPS origin and `PARKING_GATE_KEY` to the backend's gate key. A registered vehicle can enter with or without an advance reservation.
+
+## Mall visit workflow
+
+Drivers register their plate before using the cameras. They can hold a compatible bay before arrival or enter and choose a bay in **My visit**. An assigned bay remains reserved until its bay camera confirms parking. The driver sees directions using the seeded parallel-aisle floor plan and the most recent camera checkpoint. For a different garage, calibrate its floor layout and camera locations first.
+
+Run the existing OCR client with `--direction checkpoint` for an interior camera. Set `PARKING_CAMERA_LOT` to the lot ID, `PARKING_CAMERA_POSITION` to the section code for an aisle camera, or to the exact bay code for a bay-facing camera. Set `PARKING_CAMERA_KIND=bay` only for a camera whose detection area covers that individual bay. Configure the entry gate lot with `APP_GATE_LOTID` when there are multiple facilities.
+
+The cashier collects payment and records the amount under **Cashier**. The default tariff is INR 30 per started hour from entry, configurable with `APP_BILLING_HOURLYINR`. Recording payment freezes the amount. The exit camera must match the paid visit before its bay is released.

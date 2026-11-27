@@ -15,6 +15,8 @@ public class GateIndexes implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        // Older installations required a bay before admitting any vehicle.
+        jdbc.execute("ALTER TABLE parking_session ALTER COLUMN slot_id DROP NOT NULL");
         // safety net under the code: at most one ACTIVE session per vehicle and per slot
         jdbc.execute("CREATE UNIQUE INDEX IF NOT EXISTS one_active_session_per_vehicle "
                 + "ON parking_session (vehicle_id) WHERE status = 'ACTIVE'");

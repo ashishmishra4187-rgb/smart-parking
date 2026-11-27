@@ -18,7 +18,7 @@ public class ParkingSession {
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "slot_id")
     private ParkingSlot slot;
 
@@ -39,6 +39,18 @@ public class ParkingSession {
     @Column(nullable = false, length = 20)
     private SessionStatus status = SessionStatus.ACTIVE;
 
+    private Long entryLotId;
+    private String checkpoint;
+    private Instant paidAt;
+    private Integer paidRupees;
+    public Long lotId() { return entryLotId != null ? entryLotId : slot.getSection().getLot().getId(); }
+    public void setEntryLotId(Long id) { entryLotId = id; }
+    public String getCheckpoint() { return checkpoint; }
+    public void setCheckpoint(String code) { checkpoint = code; }
+    public Instant getPaidAt() { return paidAt; }
+    public Integer getPaidRupees() { return paidRupees; }
+    public void recordPayment(int amount) { paidAt = Instant.now(); paidRupees = amount; }
+    public String slotCode() { return slot == null ? null : slot.getCode(); }
     public Long getId() { return id; }
     public Vehicle getVehicle() { return vehicle; }
     public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }

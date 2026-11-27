@@ -32,6 +32,8 @@ public class GateService {
     private final SlotService slotService;
     private final NotificationService notifications;
     private final AuditService audit;
+    private final com.parking.backend.parking.ParkingLotRepository lots;
+    private final long gateLotId;
     private final double minConfidence;
     private final long debounceSeconds;
 
@@ -39,8 +41,12 @@ public class GateService {
                        ParkingSessionRepository sessions, ParkingSlotRepository slots,
                        LicensePlateDetectionRepository detections, EntryExitLogRepository logs,
                        SlotService slotService, NotificationService notifications, AuditService audit,
+                       com.parking.backend.parking.ParkingLotRepository lots,
+                       @Value("${app.gate.lot-id:0}") long gateLotId,
                        @Value("${app.gate.min-confidence:0.60}") double minConfidence,
                        @Value("${app.gate.debounce-seconds:15}") long debounceSeconds) {
+        this.lots = lots;
+        this.gateLotId = gateLotId;
         this.vehicles = vehicles;
         this.reservations = reservations;
         this.sessions = sessions;
@@ -76,13 +82,25 @@ public class GateService {
             String code = open.getReservation() != null ? open.getReservation().getPublicCode() : null;
             return finish(req, plate, dir, echo ? GateDecision.APPROVED : GateDecision.DENIED,
                     echo ? "Duplicate event ignored" : "Vehicle is already inside",
-                    false, code, open.getSlot().getCode());
+                    false, code, open.slotCode());
         }
 
         // 1. ids only, then LOCK the slot, 2. only now load the reservation fresh
         Long reservationId = reservations.findIdByVehicleAndStatus(vehicle.getId(), ReservationStatus.ACTIVE).orElse(null);
+        var configuredLots = lots.findAll();
+        Long entryLot = gateLotId > 0 && lots.existsById(gateLotId) ? Long.valueOf(gateLotId)
+                : gateLotId == 0 && configuredLots.size() == 1 ? configuredLots.get(0).getId() : null;
+        if (entryLot == null) {
+            return finish(req, plate, dir, GateDecision.DENIED, "Configure this gate's lot", true, null, null);
+        }
         if (reservationId == null) {
-            return finish(req, plate, dir, GateDecision.DENIED, "NO VALID RESERVATION", false, null, null);
+            ParkingSession walkIn = new ParkingSession();
+            walkIn.setVehicle(vehicle);
+            walkIn.setEntryTime(now);
+            walkIn.setEntryLotId(entryLot);
+            sessions.save(walkIn);
+            saveLog(walkIn, plate, dir, "Walk-in admitted");
+            return finish(req, plate, dir, GateDecision.APPROVED, "Choose a bay in My visit", false, null, null);
         }
         Long slotId = reservations.findSlotIdById(reservationId).orElseThrow(() -> new NotFoundException("Slot not found"));
         ParkingSlot slot = slots.findByIdForUpdate(slotId).orElseThrow(() -> new NotFoundException("Slot not found"));
@@ -94,13 +112,13 @@ public class GateService {
         if (r.getExpiresAt().isBefore(now)) {
             return finish(req, plate, dir, GateDecision.DENIED, "Reservation expired", false, r.getPublicCode(), slot.getCode());
         }
-        if (slot.getStatus() != SlotStatus.RESERVED) {
+        if (!slot.getSection().getLot().getId().equals(entryLot) || slot.getStatus() != SlotStatus.RESERVED) {
             return finish(req, plate, dir, GateDecision.DENIED, "Slot is not reserved", false, r.getPublicCode(), slot.getCode());
         }
 
         // all checks passed: ONE transaction changes everything
         r.setStatus(ReservationStatus.COMPLETED);
-        slotService.changeStatus(slot, SlotStatus.OCCUPIED);      // also broadcasts the live event after commit
+        // Keep the assigned bay reserved until its camera confirms parking.
 
         ParkingSession s = new ParkingSession();
         s.setVehicle(vehicle);
@@ -141,25 +159,23 @@ public class GateService {
                     echo ? "Duplicate event ignored" : "No active session for this vehicle", false, null, null);
         }
 
-        Long slotId = sessions.findSlotIdById(sessionId).orElseThrow(() -> new NotFoundException("Slot not found"));
-        ParkingSlot slot = slots.findByIdForUpdate(slotId).orElseThrow(() -> new NotFoundException("Slot not found"));
-        ParkingSession s = sessions.findById(sessionId).orElse(null);       // fresh read after the lock
-        if (s == null || s.getStatus() != SessionStatus.ACTIVE) {
-            return finish(req, plate, dir, GateDecision.DENIED, "No active session for this vehicle", false, null, null);
+        ParkingSession s = sessions.lockVisit(sessionId).orElseThrow();
+        if (s.getStatus() != SessionStatus.ACTIVE || s.getPaidAt() == null) {
+            return finish(req, plate, dir, GateDecision.DENIED, "Payment required before exit", false, null, s.slotCode());
         }
-
+        ParkingSlot slot = s.getSlot() == null ? null : slots.findByIdForUpdate(s.getSlot().getId()).orElseThrow();
         s.setExitTime(now);
         s.setDurationMinutes((int) Duration.between(s.getEntryTime(), now).toMinutes());
         s.setStatus(SessionStatus.COMPLETED);
-        if (slot.getStatus() == SlotStatus.OCCUPIED) {
+        if (slot != null && (slot.getStatus() == SlotStatus.OCCUPIED || slot.getStatus() == SlotStatus.RESERVED)) {
             slotService.changeStatus(slot, SlotStatus.AVAILABLE);
         }
 
-        saveLog(s, plate, dir, "Stayed " + s.getDurationMinutes() + " minutes in " + slot.getCode());
+        saveLog(s, plate, dir, "Stayed " + s.getDurationMinutes() + " minutes");
         notifications.create(vehicle.getUser(), "GATE_EXIT",
                 "Exit recorded for " + plate + ". You stayed " + s.getDurationMinutes() + " minutes.");
         audit.log("gate", "EXIT", "session", s.getId(), "slot " + slot.getCode() + ", plate " + plate);
-        return finish(req, plate, dir, GateDecision.APPROVED, "Exit approved", false, null, slot.getCode());
+        return finish(req, plate, dir, GateDecision.APPROVED, "Exit approved", false, null, s.slotCode());
     }
 
     // -------------------------------------------------------------- helpers
