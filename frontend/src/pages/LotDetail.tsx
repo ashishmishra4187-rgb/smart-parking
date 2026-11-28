@@ -1,3 +1,4 @@
+import IndoorMap from "../components/IndoorMap";
 import { useCallback, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Legend from "../components/Legend";
@@ -87,6 +88,7 @@ function LotView({ id }: { id: string }) {
 
           {selected && (
             <div className="details">
+              <IndoorMap lotId={id} bay={selected.code} />
               <strong>Slot {selected.code}</strong> (section {selected.section})
               <p>
                 Type: {selected.slotType}. Status:{" "}

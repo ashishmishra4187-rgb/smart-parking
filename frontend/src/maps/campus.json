@@ -1,0 +1,13 @@
+{
+  "lotName": "Main Campus Lot",
+  "entrance": "Gate 1",
+  "junctions": [
+    ["Gate 1", 42, 24], ["A", 42, 88], ["B", 42, 178], ["C", 42, 268]
+  ],
+  "accessLanes": [["Gate 1","A"],["A","B"],["B","C"]],
+  "aisles": [
+    {"junction":"A","bays":["A1","A2","A3","A4","A5","A6","A7","A8"]},
+    {"junction":"B","bays":["B1","B2","B3","B4","B5","B6","B7","B8"]},
+    {"junction":"C","bays":["C1","C2","C3","C4","C5","C6","C7","C8"]}
+  ]
+}
