@@ -1,0 +1,5 @@
+.indoor-nav{background:#11212b;color:#e9f6fa;border:1px solid #3b525c;border-radius:16px;overflow:hidden;margin:14px 0}
+.turn-banner,.nav-tools,.nav-steps{display:flex;align-items:center;gap:14px;padding:12px 16px}
+.turn-banner{background:#145951}.turn-banner>span{font:700 40px/1 sans-serif}.turn-banner h3{margin:3px 0;font-size:clamp(17px,3vw,24px)}.turn-banner small{color:#c2e9df}
+.indoor-nav svg{display:block;width:100%;max-height:400px;background:#152530}
+.nav-tools,.nav-steps{justify-content:space-between;flex-wrap:wrap}.indoor-nav button{margin:0;background:#294552;color:#eef9fb}.nav-steps{border-top:1px solid #36505c}.indoor-nav p{margin:0;padding:0 16px 16px;color:#c2d7df}
