@@ -14,6 +14,11 @@ public class ParkingLot {
     @Column(name = "reservation_minutes", nullable = false)
     private int reservationMinutes = 10;
 
+    @Column(columnDefinition = "text")
+    private String blueprintJson;
+    public String getBlueprintJson() { return blueprintJson; }
+    public void setBlueprintJson(String value) { blueprintJson = value; }
+
     private Double gateLatitude;
     private Double gateLongitude;
 

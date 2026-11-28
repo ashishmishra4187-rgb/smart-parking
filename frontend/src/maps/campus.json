@@ -1,13 +1,522 @@
 {
-  "lotName": "Main Campus Lot",
-  "entrance": "Gate 1",
-  "junctions": [
-    ["Gate 1", 42, 24], ["A", 42, 88], ["B", 42, 178], ["C", 42, 268]
+  "nodes": [
+    {
+      "id": "Gate 1",
+      "x": 42,
+      "y": 24,
+      "kind": "entrance"
+    },
+    {
+      "id": "A",
+      "x": 42,
+      "y": 88,
+      "kind": "checkpoint"
+    },
+    {
+      "id": "B",
+      "x": 42,
+      "y": 178,
+      "kind": "checkpoint"
+    },
+    {
+      "id": "C",
+      "x": 42,
+      "y": 268,
+      "kind": "checkpoint"
+    },
+    {
+      "id": "lane-A1",
+      "x": 106,
+      "y": 88,
+      "kind": "junction"
+    },
+    {
+      "id": "A1",
+      "x": 106,
+      "y": 116,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-A2",
+      "x": 160,
+      "y": 88,
+      "kind": "junction"
+    },
+    {
+      "id": "A2",
+      "x": 160,
+      "y": 116,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-A3",
+      "x": 214,
+      "y": 88,
+      "kind": "junction"
+    },
+    {
+      "id": "A3",
+      "x": 214,
+      "y": 116,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-A4",
+      "x": 268,
+      "y": 88,
+      "kind": "junction"
+    },
+    {
+      "id": "A4",
+      "x": 268,
+      "y": 116,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-A5",
+      "x": 322,
+      "y": 88,
+      "kind": "junction"
+    },
+    {
+      "id": "A5",
+      "x": 322,
+      "y": 116,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-A6",
+      "x": 376,
+      "y": 88,
+      "kind": "junction"
+    },
+    {
+      "id": "A6",
+      "x": 376,
+      "y": 116,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-A7",
+      "x": 430,
+      "y": 88,
+      "kind": "junction"
+    },
+    {
+      "id": "A7",
+      "x": 430,
+      "y": 116,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-A8",
+      "x": 484,
+      "y": 88,
+      "kind": "junction"
+    },
+    {
+      "id": "A8",
+      "x": 484,
+      "y": 116,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-B1",
+      "x": 106,
+      "y": 178,
+      "kind": "junction"
+    },
+    {
+      "id": "B1",
+      "x": 106,
+      "y": 206,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-B2",
+      "x": 160,
+      "y": 178,
+      "kind": "junction"
+    },
+    {
+      "id": "B2",
+      "x": 160,
+      "y": 206,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-B3",
+      "x": 214,
+      "y": 178,
+      "kind": "junction"
+    },
+    {
+      "id": "B3",
+      "x": 214,
+      "y": 206,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-B4",
+      "x": 268,
+      "y": 178,
+      "kind": "junction"
+    },
+    {
+      "id": "B4",
+      "x": 268,
+      "y": 206,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-B5",
+      "x": 322,
+      "y": 178,
+      "kind": "junction"
+    },
+    {
+      "id": "B5",
+      "x": 322,
+      "y": 206,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-B6",
+      "x": 376,
+      "y": 178,
+      "kind": "junction"
+    },
+    {
+      "id": "B6",
+      "x": 376,
+      "y": 206,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-B7",
+      "x": 430,
+      "y": 178,
+      "kind": "junction"
+    },
+    {
+      "id": "B7",
+      "x": 430,
+      "y": 206,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-B8",
+      "x": 484,
+      "y": 178,
+      "kind": "junction"
+    },
+    {
+      "id": "B8",
+      "x": 484,
+      "y": 206,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-C1",
+      "x": 106,
+      "y": 268,
+      "kind": "junction"
+    },
+    {
+      "id": "C1",
+      "x": 106,
+      "y": 296,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-C2",
+      "x": 160,
+      "y": 268,
+      "kind": "junction"
+    },
+    {
+      "id": "C2",
+      "x": 160,
+      "y": 296,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-C3",
+      "x": 214,
+      "y": 268,
+      "kind": "junction"
+    },
+    {
+      "id": "C3",
+      "x": 214,
+      "y": 296,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-C4",
+      "x": 268,
+      "y": 268,
+      "kind": "junction"
+    },
+    {
+      "id": "C4",
+      "x": 268,
+      "y": 296,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-C5",
+      "x": 322,
+      "y": 268,
+      "kind": "junction"
+    },
+    {
+      "id": "C5",
+      "x": 322,
+      "y": 296,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-C6",
+      "x": 376,
+      "y": 268,
+      "kind": "junction"
+    },
+    {
+      "id": "C6",
+      "x": 376,
+      "y": 296,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-C7",
+      "x": 430,
+      "y": 268,
+      "kind": "junction"
+    },
+    {
+      "id": "C7",
+      "x": 430,
+      "y": 296,
+      "kind": "bay"
+    },
+    {
+      "id": "lane-C8",
+      "x": 484,
+      "y": 268,
+      "kind": "junction"
+    },
+    {
+      "id": "C8",
+      "x": 484,
+      "y": 296,
+      "kind": "bay"
+    }
   ],
-  "accessLanes": [["Gate 1","A"],["A","B"],["B","C"]],
-  "aisles": [
-    {"junction":"A","bays":["A1","A2","A3","A4","A5","A6","A7","A8"]},
-    {"junction":"B","bays":["B1","B2","B3","B4","B5","B6","B7","B8"]},
-    {"junction":"C","bays":["C1","C2","C3","C4","C5","C6","C7","C8"]}
+  "lanes": [
+    [
+      "Gate 1",
+      "A"
+    ],
+    [
+      "A",
+      "B"
+    ],
+    [
+      "B",
+      "C"
+    ],
+    [
+      "A",
+      "lane-A1"
+    ],
+    [
+      "lane-A1",
+      "A1"
+    ],
+    [
+      "lane-A1",
+      "lane-A2"
+    ],
+    [
+      "lane-A2",
+      "A2"
+    ],
+    [
+      "lane-A2",
+      "lane-A3"
+    ],
+    [
+      "lane-A3",
+      "A3"
+    ],
+    [
+      "lane-A3",
+      "lane-A4"
+    ],
+    [
+      "lane-A4",
+      "A4"
+    ],
+    [
+      "lane-A4",
+      "lane-A5"
+    ],
+    [
+      "lane-A5",
+      "A5"
+    ],
+    [
+      "lane-A5",
+      "lane-A6"
+    ],
+    [
+      "lane-A6",
+      "A6"
+    ],
+    [
+      "lane-A6",
+      "lane-A7"
+    ],
+    [
+      "lane-A7",
+      "A7"
+    ],
+    [
+      "lane-A7",
+      "lane-A8"
+    ],
+    [
+      "lane-A8",
+      "A8"
+    ],
+    [
+      "B",
+      "lane-B1"
+    ],
+    [
+      "lane-B1",
+      "B1"
+    ],
+    [
+      "lane-B1",
+      "lane-B2"
+    ],
+    [
+      "lane-B2",
+      "B2"
+    ],
+    [
+      "lane-B2",
+      "lane-B3"
+    ],
+    [
+      "lane-B3",
+      "B3"
+    ],
+    [
+      "lane-B3",
+      "lane-B4"
+    ],
+    [
+      "lane-B4",
+      "B4"
+    ],
+    [
+      "lane-B4",
+      "lane-B5"
+    ],
+    [
+      "lane-B5",
+      "B5"
+    ],
+    [
+      "lane-B5",
+      "lane-B6"
+    ],
+    [
+      "lane-B6",
+      "B6"
+    ],
+    [
+      "lane-B6",
+      "lane-B7"
+    ],
+    [
+      "lane-B7",
+      "B7"
+    ],
+    [
+      "lane-B7",
+      "lane-B8"
+    ],
+    [
+      "lane-B8",
+      "B8"
+    ],
+    [
+      "C",
+      "lane-C1"
+    ],
+    [
+      "lane-C1",
+      "C1"
+    ],
+    [
+      "lane-C1",
+      "lane-C2"
+    ],
+    [
+      "lane-C2",
+      "C2"
+    ],
+    [
+      "lane-C2",
+      "lane-C3"
+    ],
+    [
+      "lane-C3",
+      "C3"
+    ],
+    [
+      "lane-C3",
+      "lane-C4"
+    ],
+    [
+      "lane-C4",
+      "C4"
+    ],
+    [
+      "lane-C4",
+      "lane-C5"
+    ],
+    [
+      "lane-C5",
+      "C5"
+    ],
+    [
+      "lane-C5",
+      "lane-C6"
+    ],
+    [
+      "lane-C6",
+      "C6"
+    ],
+    [
+      "lane-C6",
+      "lane-C7"
+    ],
+    [
+      "lane-C7",
+      "C7"
+    ],
+    [
+      "lane-C7",
+      "lane-C8"
+    ],
+    [
+      "lane-C8",
+      "C8"
+    ]
   ]
 }

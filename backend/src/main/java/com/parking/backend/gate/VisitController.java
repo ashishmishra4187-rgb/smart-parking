@@ -21,12 +21,14 @@ public class VisitController {
     private final ParkingSlotRepository slots;
     private final SlotService slotService;
     private final PlateLookupRepository vehicles;
+    private final tools.jackson.databind.ObjectMapper mapper;
     private final int hourlyRate;
     private final double confidence;
 
-    public VisitController(ParkingSessionRepository sessions, ParkingSlotRepository slots, SlotService slotService,
+    public VisitController(tools.jackson.databind.ObjectMapper mapper, ParkingSessionRepository sessions, ParkingSlotRepository slots, SlotService slotService,
                            PlateLookupRepository vehicles, @Value("${app.billing.hourly-inr:30}") int hourlyRate,
                            @Value("${app.gate.min-confidence:0.60}") double confidence) {
+        this.mapper = mapper;
         this.sessions = sessions;
         this.slots = slots;
         this.slotService = slotService;
@@ -86,6 +88,14 @@ public class VisitController {
         if (s.lotId() != reading.lotId()) throw new ConflictException("Wrong facility");
         var mapped = slots.findAllByLotId(s.lotId()).stream().anyMatch(slot -> reading.bayCamera()
                 ? slot.getCode().equals(reading.checkpoint()) : slot.getSection().getCode().equals(reading.checkpoint()));
+        if (!reading.bayCamera()) {
+            var lotSlots = slots.findAllByLotId(s.lotId());
+            if (!lotSlots.isEmpty()) {
+                String json = lotSlots.get(0).getSection().getLot().getBlueprintJson();
+                if (json != null) mapped = mapper.readValue(json, BlueprintController.Plan.class).nodes().stream()
+                        .anyMatch(n -> (n.kind().equals("checkpoint") || n.kind().equals("entrance")) && n.id().equals(reading.checkpoint()));
+            }
+        }
         if (!mapped) throw new ConflictException("Unknown camera position");
         if (reading.bayCamera()) {
             if (!reading.checkpoint().equals(s.slotCode())) throw new ConflictException("Vehicle is outside assigned bay");

@@ -1,4 +1,5 @@
-﻿import { useState } from "react";
+import BlueprintUpload from "./BlueprintUpload";
+import { useState } from "react";
 import { api } from "../api";
 import type { Lot } from "../types";
 import { useLoad } from "../useLoad";
@@ -23,6 +24,6 @@ function PinForm({lot}:{lot:Lot}) {
 }
 export default function GatePins(){
   const {data,error}=useLoad<Lot[]>("/api/parking/lots");
-  return <details className="panel"><summary>Vehicle entrance GPS pins</summary><p>Use the coordinates of the inbound vehicle gate.</p>
-    {error && <p role="alert">{error}</p>}{data?.map(lot=><PinForm key={lot.id} lot={lot}/>)}</details>;
+  return <details className="panel"><summary>Entrance GPS and indoor blueprints</summary><p>Use the coordinates of the inbound vehicle gate.</p>
+    {error && <p role="alert">{error}</p>}{data?.map(lot=><section key={lot.id}><PinForm lot={lot}/><BlueprintUpload lot={lot}/></section>)}</details>;
 }
