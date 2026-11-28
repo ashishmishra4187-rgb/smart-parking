@@ -18,6 +18,9 @@ export default function Lots() {
           <div className="lot" key={lot.id}>
             <Link to={`/lots/${lot.id}`}><strong>{lot.name}</strong></Link>
             {lot.address && <span> ({lot.address})</span>}
+            <p>{typeof lot.gateLatitude === "number" && typeof lot.gateLongitude === "number"
+              ? <a target="_blank" rel="noopener noreferrer" href={`https://www.google.com/maps/dir/?api=1&destination=${lot.gateLatitude},${lot.gateLongitude}&travelmode=driving&dir_action=navigate`}>Navigate to entrance ?</a>
+              : "Entrance GPS pin pending"}</p>
             <div className="bar">
               <div className="fill" style={{ width: `${pct}%` }} />
             </div>

@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import ArrivalPrompt from "./components/ArrivalPrompt";
 import NotificationBell from "./components/NotificationBell";
 import OfflineBanner from "./components/OfflineBanner";
 import { useAuth } from "./auth";
@@ -32,6 +33,7 @@ export default function Layout() {
         </div>
       </header>
       <main className="page">
+        {!pathname.startsWith("/manager") && pathname !== "/visits" && <ArrivalPrompt />}
         <Outlet />
       </main>
     </div>

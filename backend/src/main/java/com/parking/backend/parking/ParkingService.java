@@ -30,7 +30,7 @@ public class ParkingService {
 
     private LotDto toDto(ParkingLot lot) {
         Long id = lot.getId();
-        return new LotDto(id, lot.getName(), lot.getAddress(), lot.getReservationMinutes(),
+        return new LotDto(id, lot.getName(), lot.getAddress(), lot.getReservationMinutes(), lot.getGateLatitude(), lot.getGateLongitude(),
                 slots.countBySectionLotId(id),
                 slots.countBySectionLotIdAndStatus(id, SlotStatus.AVAILABLE),
                 slots.countBySectionLotIdAndStatus(id, SlotStatus.RESERVED),

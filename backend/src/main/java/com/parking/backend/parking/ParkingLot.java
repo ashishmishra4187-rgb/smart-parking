@@ -14,6 +14,16 @@ public class ParkingLot {
     @Column(name = "reservation_minutes", nullable = false)
     private int reservationMinutes = 10;
 
+    private Double gateLatitude;
+    private Double gateLongitude;
+
+    public Double getGateLatitude() { return gateLatitude; }
+    public Double getGateLongitude() { return gateLongitude; }
+    public void setGateLocation(double latitude, double longitude) {
+        gateLatitude = latitude;
+        gateLongitude = longitude;
+    }
+
     public Long getId() {
         return id;
     }

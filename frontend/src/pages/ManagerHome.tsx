@@ -1,3 +1,4 @@
+import GatePins from "../components/GatePins";
 import Countdown from "../components/Countdown";
 import DataTable from "../components/DataTable";
 import StatCard from "../components/StatCard";
@@ -71,6 +72,7 @@ export default function ManagerHome() {
         </>
       )}
 
+      <GatePins />
       <h2>Cars inside</h2>
       {inside.error && <ErrorBox message={inside.error} onRetry={inside.reload} />}
       {inside.data && (

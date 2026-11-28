@@ -9,7 +9,7 @@ export type GateDecision = "APPROVED" | "DENIED" | "RETRY";
 
 // mirrors Java LotDto
 export interface Lot {
-  id: number; name: string; address: string | null; reservationMinutes: number;
+  id: number; name: string; address: string | null; reservationMinutes: number; gateLatitude?: number|null; gateLongitude?: number|null;
   total: number; available: number; reserved: number; occupied: number; maintenance: number;
 }
 // mirrors Java SlotDto
